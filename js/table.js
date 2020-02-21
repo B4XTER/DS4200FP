@@ -11,7 +11,9 @@ function table() {
   // Create the chart by adding an svg to the div with the id 
   // specified by the selector using the given data
   function chart(selector, data) {
-    let table = d3.select(selector)
+    let table = d3.select(selector),
+                  thead = table.append("thead"),
+                  tbody = table.append("tbody")
       .append("table")
         .classed("my-table", true);
 
@@ -25,6 +27,12 @@ function table() {
 
     // YOUR CODE HERE
 
+    thead.append('tr')
+        .selectAll('th')
+        .data(tableHeaders).enter()
+        .append('th')
+          .text(function(d) { return d;});
+
     // Then, you add a row for each row of the data.  Within each row, you
     // add a cell for each piece of data in the row.
     // HINTS: For each piece of data, you should add a table row.
@@ -33,22 +41,76 @@ function table() {
 
     // YOUR CODE HERE
 
+    let rows = tbody.selectAll("tr")
+        .data(data)
+        .enter()
+        .append("tr");
 
-    // Then, add code to allow for brushing.  Note, this is handled differently
-    // than the line chart and scatter plot because we are not using an SVG.
-    // Look at the readme of the assignment for hints.
-    // Note: you'll also have to implement linking in the updateSelection function
-    // at the bottom of this function.
-    // Remember that you have to dispatch that an object was highlighted.  Look
-    // in linechart.js and scatterplot.js to see how to interact with the dispatcher.
+    //create a cell in each row for each colum
+    let cells = rows.selectAll("td")
+        .data(function (row) {
+          return tableHeaders.map(function (column) {
+            return {column: column, value: row[column]};
+          });
+        })
+        .enter()
+        .append("td")
+          .text(function(d) { return d.value;});
 
-    // HINT for brushing on the table: keep track of whether the mouse is down or up, 
-    // and when the mouse is down, keep track of any rows that have been mouseover'd
+    var mouseDown = false;
+    rows.on("mouseover", highlight);
+    rows.on("mouseout", unhighlight);
+    rows.on("mousedown", select);
+    rows.on("mousemove", shadow);
+    rows.on("mouseup", deselect);
 
-    // YOUR CODE HERE
+    function highlight() {
+      if (d3.select(this).attr("class") === "selected") {
+        d3.select(this).attr("class", "");
+        d3.select(this).attr("class", "selected");
+      } else {
+        d3.select(this).attr("class", "mouseover");
+      }
+    }
 
-    return chart;
+    function unhighlight() {
+      if (d3.select(this).attr("class") === "selected"
+        || d3.select(this).attr("class") === "mouseover selected") {
+        d3.select(this).attr("class", "");
+        d3.select(this).attr("class", "selected");
+      } else {
+        d3.select(this).attr("class", "");
+      }
+    }
+
+    function select() {
+      let dispatchString = Object.getOwnPropertyNames(dispatcher._)[0];
+      if (!mouseDown) {
+        table.selectAll(".selected").attr("class", "")
+        dispatcher.call(dispatchString, this, []);
+      }
+      d3.select(this).attr("class", "mouseover selected");
+      dispatcher.call(dispatchString, this, table.selectAll(".selected").data());
+      mouseDown = true;
+    }
+
+    function shadow() {
+      if (mouseDown) {
+        d3.select(this).attr("class", "mouseover selected");
+          let dispatchString = Object.getOwnPropertyNames(dispatcher._)[0];
+          dispatcher.call(dispatchString, this, table.selectAll(".selected").data());
+      }
+    }
+
+    function deselect() {
+      mouseDown = false;
+    }
+
+          
+    return chart
   }
+  
+
 
   // Gets or sets the dispatcher we use for selection events
   chart.selectionDispatcher = function (_) {
@@ -69,4 +131,5 @@ function table() {
   };
 
   return chart;
+
 }

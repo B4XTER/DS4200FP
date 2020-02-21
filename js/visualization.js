@@ -46,6 +46,7 @@
     // tell the scatterplot to update it's selection (linking)
     lcYearPoverty.selectionDispatcher().on(dispatchString, function(selectedData) {
       spUnemployMurder.updateSelection(selectedData);
+      tableData.updateSelection(selectedData);
       // ADD CODE TO HAVE TABLE UPDATE ITS SELECTION AS WELL
     });
 
@@ -53,11 +54,17 @@
     // tell the line chart to update it's selection (linking)
     spUnemployMurder.selectionDispatcher().on(dispatchString, function(selectedData) {
       lcYearPoverty.updateSelection(selectedData);
+      tableData.updateSelection(selectedData);
       // ADD CODE TO HAVE TABLE UPDATE ITS SELECTION AS WELL
     });
 
     // When the table is updated via brushing, tell the line chart and scatterplot
     // YOUR CODE HERE
+    tableData.selectionDispatcher().on(dispatchString, function(selectedData) {
+      lcYearPoverty.updateSelection(selectedData);
+      spUnemployMurder.updateSelection(selectedData);
+    });
+    
   });
 
 })());

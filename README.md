@@ -19,7 +19,7 @@ This assignment will help you get started with brushing and linking. Please look
 
 1. Wait for the output: `Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/)`
 
-1. Now open your web browser (Firefox or Chrome) and navigate to the URL: http://localhost:8000
+1. Now open your web browser (Firefox or Chrome) and navigate to the URL: https://neu-ds-4200-s20.github.io/assignment-brushing-and-linking-in-d3-li-xuyang28/
 
 ## Organization
 
