@@ -11,12 +11,11 @@ function table() {
   // Create the chart by adding an svg to the div with the id 
   // specified by the selector using the given data
   function chart(selector, data) {
-    let table = d3.select(selector),
-                  thead = table.append("thead"),
-                  tbody = table.append("tbody")
+    let table = d3.select(selector)
       .append("table")
-        .classed("my-table", true);
-
+        .classed("my-table", true),
+    thead = table.append("thead"),
+    tbody = table.append("tbody");
     // Here, we grab the labels of the first item in the dataset
     //  and store them as the headers of the table.
     let tableHeaders = Object.keys(data[0]);
@@ -25,13 +24,13 @@ function table() {
     // a <th>
     // See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table
 
-    // YOUR CODE HERE
 
-    thead.append('tr')
-        .selectAll('th')
-        .data(tableHeaders).enter()
-        .append('th')
-          .text(function(d) { return d;});
+    thead.append("tr")
+    .selectAll("th")
+    .data(tableHeaders)
+    .enter()
+    .append("th")
+        .text(function(data) { ;return data; });
 
     // Then, you add a row for each row of the data.  Within each row, you
     // add a cell for each piece of data in the row.
@@ -39,78 +38,79 @@ function table() {
     // Then, for each table row, you add a table cell.  You can do this with
     // two different calls to enter() and data(), or with two different loops.
 
-    // YOUR CODE HERE
+    var rows = tbody.selectAll('tr')
+      .data(data)
+      .enter()
+      .append('tr');
 
-    let rows = tbody.selectAll("tr")
-        .data(data)
-        .enter()
-        .append("tr");
+    // create a cell in each row for each column
+    var cells = rows.selectAll('td')
+      .data(function (row) {
+        return tableHeaders.map(function (column) {
+          return {column: column, value: row[column]};
+        });
+      })
+      .enter()
+      .append('td')
+        .text(function (d) { return d.value; });
 
-    //create a cell in each row for each colum
-    let cells = rows.selectAll("td")
-        .data(function (row) {
-          return tableHeaders.map(function (column) {
-            return {column: column, value: row[column]};
-          });
-        })
-        .enter()
-        .append("td")
-          .text(function(d) { return d.value;});
 
-    var mouseDown = false;
-    rows.on("mouseover", highlight);
-    rows.on("mouseout", unhighlight);
-    rows.on("mousedown", select);
-    rows.on("mousemove", shadow);
-    rows.on("mouseup", deselect);
+    // Then, add code to allow for brushing.  Note, this is handled differently
+    // than the line chart and scatter plot because we are not using an SVG.
+    // Look at the readme of the assignment for hints.
+    // Note: you'll also have to implement linking in the updateSelection function
+    // at the bottom of this function.
+    // Remember that you have to dispatch that an object was highlighted.  Look
+    // in linechart.js and scatterplot.js to see how to interact with the dispatcher.
 
-    function highlight() {
-      if (d3.select(this).attr("class") === "selected") {
-        d3.select(this).attr("class", "");
-        d3.select(this).attr("class", "selected");
+    // HINT for brushing on the table: keep track of whether the mouse is down or up, 
+    // and when the mouse is down, keep track of any rows that have been mouseover'd
+
+
+
+    var clicked = 'third' 
+    //clicked is my version of a 3 bit boolean that lets me keep track of what click we are
+    //on for the table. The click number will help decide whether we clear the selection,
+    //select the first out of the selection, or end the selection.
+    d3.selectAll("tr")
+    .on("mousedown", (d, i, elements) => {
+      d3.select(elements[i]).classed("mouseover", true)
+      if(clicked == 'first') {
+        clicked = 'second'
+      } else if(clicked == 'second') {
+        clicked = 'third'
+        for(x = 0; x < elements.length; x++) {
+          d3.select(elements[x]).classed("mouseover", false)//clears the table
+        }
+        d3.select(elements[i]).classed("mouseover", true)
       } else {
-        d3.select(this).attr("class", "mouseover");
-      }
-    }
+        clicked = 'first'
+        for(x = 0; x < elements.length; x++) {
+          d3.select(elements[x]).classed("mouseover", false) //clears the table
+        }
+        d3.select(elements[i]).classed("mouseover", true)
 
-    function unhighlight() {
-      if (d3.select(this).attr("class") === "selected"
-        || d3.select(this).attr("class") === "mouseover selected") {
-        d3.select(this).attr("class", "");
-        d3.select(this).attr("class", "selected");
-      } else {
-        d3.select(this).attr("class", "");
       }
-    }
-
-    function select() {
       let dispatchString = Object.getOwnPropertyNames(dispatcher._)[0];
-      if (!mouseDown) {
-        table.selectAll(".selected").attr("class", "")
-        dispatcher.call(dispatchString, this, []);
+      
+      // Let other charts know about our selection
+      dispatcher.call(dispatchString, this, d3.selectAll(".mouseover").data());
+    })
+    .on("mouseover", (d,i,elements) => {
+      if(clicked == 'first') {
+        d3.select(elements[i]).classed("mouseover", true) //begin the selection
       }
-      d3.select(this).attr("class", "mouseover selected");
-      dispatcher.call(dispatchString, this, table.selectAll(".selected").data());
-      mouseDown = true;
-    }
+      // Get the name of our dispatcher's event
+      let dispatchString = Object.getOwnPropertyNames(dispatcher._)[0];
 
-    function shadow() {
-      if (mouseDown) {
-        d3.select(this).attr("class", "mouseover selected");
-          let dispatchString = Object.getOwnPropertyNames(dispatcher._)[0];
-          dispatcher.call(dispatchString, this, table.selectAll(".selected").data());
-      }
-    }
+      // Let other charts know about our selection
+      dispatcher.call(dispatchString, this, d3.selectAll(".mouseover").data());
+    });
+    
+    
 
-    function deselect() {
-      mouseDown = false;
-    }
-
-          
-    return chart
+  return chart;
   }
-  
-
 
   // Gets or sets the dispatcher we use for selection events
   chart.selectionDispatcher = function (_) {
@@ -125,11 +125,10 @@ function table() {
     if (!arguments.length) return;
 
     // Select an element if its datum was selected
-    d3.selectAll('tr').classed("selected", d => {
+    d3.selectAll('tr').classed("mouseover", d => {
       return selectedData.includes(d)
     });
   };
 
   return chart;
-
 }
