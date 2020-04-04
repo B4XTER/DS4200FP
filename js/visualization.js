@@ -2,9 +2,8 @@
 // variables and prevent race conditions
 ((() => {
 
-  // Load the data from a json file (you can make these using
-  // JSON.stringify(YOUR_OBJECT), just remove the surrounding "")
-  d3.json("data/texas.json", (data) => {
+
+  d3.csv("data/member_data.csv", (data) => {
 
     // General event type for selections, used by d3-dispatch
     // https://github.com/d3/d3-dispatch

@@ -71,7 +71,7 @@ table {
   margin: 0 auto;
 }
 
-th, td {
+th, td, tr {
   /* vertical | horizontal */
   padding: 0 8px;
 }
