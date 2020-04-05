@@ -89,12 +89,12 @@ table.text-unselectable {
 }
 
 /* Recreate the D3 brush style... */
-tr.mouseover {
+th.mouseover {
   background-color: #d6d6d6;
 }
 
 /* ...but add a darker selected and brushed color. */
-tr.mouseover.selected{
+th.mouseover.selected{
   background-color: #e08fa3;
 }
 
